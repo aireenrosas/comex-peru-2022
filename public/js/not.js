@@ -1,0 +1,19 @@
+(function(window){'use strict';const applicationServerPublicKey=keyApi;var fabPushElement=document.querySelector('.fab__push');var fabPushImgElement=document.querySelector('.fab__image');function isPushSupported(){if(Notification.permission==='denied'){alert('User has blocked push notification.');return}
+if(!('PushManager' in window)){alert('Sorry, Push notification isn\'t supported in your browser.');return}else{console.log('soporta push Notification')}}
+function urlB64ToUint8Array(base64String){const padding='='.repeat((4-base64String.length%4)%4);const base64=(base64String+padding).replace(/\-/g,'+').replace(/_/g,'/');const rawData=window.atob(base64);const outputArray=new Uint8Array(rawData.length);for(let i=0;i<rawData.length;++i){outputArray[i]=rawData.charCodeAt(i)}
+return outputArray}
+navigator.serviceWorker.ready.then(function(registration){registration.pushManager.getSubscription().then(function(subscription){if(subscription){changePushStatus(!0)}
+else{changePushStatus(!1)}}).catch(function(error){console.log('dfdsfds');console.error('Error occurred while enabling push ',error)})});function subscribePush(){const applicationServerKey=urlB64ToUint8Array(applicationServerPublicKey);navigator.serviceWorker.ready.then(function(registration){if(!registration.pushManager){alert('Your browser doesn\'t support push notification.');return!1}
+registration.pushManager.subscribe({userVisibleOnly:!0,applicationServerKey:applicationServerKey}).then(function(subscription){toastr.options={"closeButton":!1,"debug":!1,"newestOnTop":!1,"progressBar":!1,"positionClass":"toast-bottom-right","preventDuplicates":!1,"onclick":null,"showMethod":"fadeIn","hideMethod":"fadeOut"}
+toastr.info('Notificaciones activas.');console.info('Push notification subscribed.');var sub=JSON.stringify(subscription);console.log('json',sub);console.log(subscription);saveSubscriptionID(subscription);changePushStatus(!0)}).catch(function(error){changePushStatus(!1);console.error('Push notification subscription error: ',error)})})}
+function unsubscribePush(){navigator.serviceWorker.ready.then(function(registration){registration.pushManager.getSubscription().then(function(subscription){if(!subscription){alert('Unable to unregister push notification.');return}
+subscription.unsubscribe().then(function(){toastr.options={"closeButton":!1,"debug":!1,"newestOnTop":!1,"progressBar":!1,"positionClass":"toast-bottom-right","preventDuplicates":!1,"onclick":null,"showMethod":"fadeIn","hideMethod":"fadeOut"}
+toastr.info('Notificaciones desactivadas.');console.info('Push notification unsubscribed.');console.log(subscription);changePushStatus(!1)}).catch(function(error){console.error(error)})}).catch(function(error){console.error('Failed to unsubscribe push notification.')})})}
+function changePushStatus(status){fabPushElement.dataset.checked=status;fabPushElement.checked=status;if(status){fabPushElement.classList.add('active');fabPushImgElement.src=url+'/images/push-on.png'}
+else{fabPushElement.classList.remove('active');fabPushImgElement.src=url+'/images/push-off.png'}}
+fabPushElement.addEventListener('click',function(){var isSubscribed=(fabPushElement.dataset.checked==='true');console.log('usuario subscrito',isSubscribed);if(isSubscribed){unsubscribePush()}
+else{subscribePush()}});function saveSubscriptionID(subscription){var subscription_id=subscription.endpoint.split('gcm/send/')[1];console.log("Subscription ID",subscription.endpoint);var data={};data.json=JSON.stringify(subscription);data._token=$('meta[name="csrf-token"]').attr('content');$.ajax({type:"POST",url:url+'/api/save-subscription',data:data,success:function(data){showResult(data)},error:function(data){showError(data)}})}
+function showResult(dat){console.log('muestor error',dat)}
+function showError(err){console.log('muestor error',err)}
+function ajaxPositive(response){console.log('response',response);console.log('response.ok: ',response.ok)}
+isPushSupported()})(window)
